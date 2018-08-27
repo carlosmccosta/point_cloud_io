@@ -7,9 +7,12 @@ add_definitions(--std=c++11)
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED
   COMPONENTS
+    geometry_msgs
     pcl_ros
     roscpp
     sensor_msgs
+    tf2
+    tf2_ros
 )
 
 ###################################
@@ -26,9 +29,12 @@ catkin_package(
     include
 #  LIBRARIES
   CATKIN_DEPENDS
+    geometry_msgs
     pcl_ros
     roscpp
     sensor_msgs
+    tf2
+    tf2_ros
 #  DEPENDS
 )
 

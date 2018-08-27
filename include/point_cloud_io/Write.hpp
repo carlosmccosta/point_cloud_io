@@ -12,11 +12,15 @@
 
 // ROS
 #include <ros/ros.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 
 // PCL
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/common/transforms.h>
 
 namespace point_cloud_io {
 
@@ -87,6 +91,15 @@ class Write
 
   //! Setting for specifying if saving normals is required
   bool saveNormals_ = true;
+
+  //! Settings for transforming the point cloud
+  std::string tfTargetFrameId_;
+  std::string tfOverridePointCloudFrameId_;
+  double tfLookupTimeout_ = 3.0;
+
+  //! TF2 buffer data
+  tf2_ros::Buffer tf2Buffer_;
+  tf2_ros::TransformListener tf2TransformListener_;
 };
 
 } /* namespace */
