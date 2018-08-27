@@ -81,6 +81,9 @@ class Read
   //! Point cloud frame id.
   std::string pointCloudFrameId_;
 
+  //! Point cloud scale_factor.
+  double pointCloudScaleFactor_ = 1.0;
+
   //! If true, continous publishing is used.
   //! If false, point cloud is only published once.
   bool isContinousPublishing_;

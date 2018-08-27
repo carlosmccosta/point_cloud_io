@@ -12,6 +12,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/io/ply_io.h>
+#include <pcl/common/transforms.h>
 #include <pcl_conversions/pcl_conversions.h>
 // define the following in order to eliminate the deprecated headers warning
 #define VTK_EXCLUDE_STRSTREAM_HEADERS
@@ -58,6 +59,9 @@ bool Read::readParameters()
     updateDuration_.fromSec(1.0 / updateRate);
   }
 
+  if (!nodeHandle_.getParam("pointcloud_scale_factor", pointCloudScaleFactor_) || pointCloudScaleFactor_ <= 0.0)
+    pointCloudScaleFactor_ = 1.0;
+
   if (!allParametersRead)
   {
     ROS_WARN("Could not read all parameters. Typical command-line usage:\n"
@@ -65,7 +69,8 @@ bool Read::readParameters()
         " _file_path:=/home/user/my_point_cloud.ply"
         " _topic:=/my_topic"
         " _frame:=sensor_frame"
-        " (optional: _rate:=publishing_rate)");
+        " (optional: _rate:=publishing_rate"
+                   " _pointcloud_scale_factor:=scale)");
     return false;
   }
 
@@ -90,26 +95,32 @@ void Read::initialize()
 
 bool Read::readFile(const std::string& filePath, const std::string& pointCloudFrameId)
 {
+  PointCloud<PointXYZRGBNormal> pointCloud;
+
   if (filePath.find(".ply") != std::string::npos) {
     // Load .ply file.
-    PointCloud<PointXYZRGBNormal> pointCloud;
     if (loadPLYFile(filePath, pointCloud) != 0) return false;
-
-    // Define PointCloud2 message.
-    toROSMsg(pointCloud, *pointCloudMessage_);
   }
   else if (filePath.find(".vtk") != std::string::npos) {
     // Load .vtk file.
     PolygonMesh polygonMesh;
     loadPolygonFileVTK(filePath, polygonMesh);
-
-    // Define PointCloud2 message.
-    moveFromPCL(polygonMesh.cloud, *pointCloudMessage_);
+    pcl::fromPCLPointCloud2(polygonMesh.cloud, pointCloud);
   }
   else {
     ROS_ERROR_STREAM("Data format not supported.");
     return false;
   }
+
+  if (pointCloudScaleFactor_ != 1.0)
+  {
+    PointCloud<PointXYZRGBNormal> pointCloud_scaled;
+    Eigen::Matrix4f scale_matrix = Eigen::Matrix4f(Eigen::Matrix4f::Identity()) * pointCloudScaleFactor_;
+    pcl::transformPointCloud<PointXYZRGBNormal>(pointCloud, pointCloud_scaled, scale_matrix);
+    toROSMsg(pointCloud_scaled, *pointCloudMessage_);
+  }
+  else
+    toROSMsg(pointCloud, *pointCloudMessage_);
 
   pointCloudMessage_->header.frame_id = pointCloudFrameId;
 
