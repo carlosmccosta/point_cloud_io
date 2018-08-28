@@ -59,6 +59,8 @@ bool Read::readParameters()
     updateDuration_.fromSec(1.0 / updateRate);
   }
 
+  nodeHandle_.param("shutdown_delay_if_not_continous_publishing", shutdownDelayIfNotContinousPublishing_, -1.0);
+
   if (!nodeHandle_.getParam("pointcloud_scale_factor", pointCloudScaleFactor_) || pointCloudScaleFactor_ <= 0.0)
     pointCloudScaleFactor_ = 1.0;
 
@@ -70,6 +72,7 @@ bool Read::readParameters()
         " _topic:=/my_topic"
         " _frame:=sensor_frame"
         " (optional: _rate:=publishing_rate"
+                   " _shutdown_delay_if_not_continous_publishing:=delay"
                    " _pointcloud_scale_factor:=scale)");
     return false;
   }
@@ -89,7 +92,12 @@ void Read::initialize()
   {
     Duration(1.0).sleep(); // Need this to get things ready before publishing.
     if (!publish()) ROS_ERROR("Something went wrong when trying to read and publish the point cloud file.");
-    ros::requestShutdown();
+    
+    if (shutdownDelayIfNotContinousPublishing_ > 0.0)
+    {
+      Duration(shutdownDelayIfNotContinousPublishing_).sleep(); // Give time for the subscribers to receive the point cloud.
+      ros::requestShutdown();
+    }
   }
 }
 

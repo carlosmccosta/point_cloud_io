@@ -88,6 +88,10 @@ class Read
   //! If false, point cloud is only published once.
   bool isContinousPublishing_;
 
+  //! If > 0, the node will shutdown after sending the point cloud and waiting the specified time
+  //! If < 0, the node will stay alive
+  double shutdownDelayIfNotContinousPublishing_;
+
   //! Duration between publishing steps.
   ros::Duration updateDuration_;
 };
