@@ -8,9 +8,15 @@
 
 #pragma once
 
+#include <string>
+
 // ROS
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
+
+// PCL
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 namespace point_cloud_io {
 
@@ -41,6 +47,14 @@ class Write
    */
   void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud);
 
+  /*!
+   * Method for saving a point cloud to file
+   * @param filePath Path where the file will be saved
+   * @param pclCloud Point cloud to save
+   */
+  template<typename PointT>
+  bool savePointCloud(const std::string& filePath, const pcl::PointCloud<PointT>& pclCloud);
+
   //! ROS node handle.
   ros::NodeHandle& nodeHandle_;
 
@@ -70,6 +84,9 @@ class Write
 
   //! Setting for saving a single point cloud and exiting
   bool saveOnlyOnePointcloud_ = true;
+
+  //! Setting for specifying if saving normals is required
+  bool saveNormals_ = true;
 };
 
 } /* namespace */

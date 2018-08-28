@@ -9,8 +9,6 @@
 #include "point_cloud_io/Write.hpp"
 
 //PCL
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
 #include <pcl/io/ply_io.h>
 #include <pcl_conversions/pcl_conversions.h>
 
@@ -48,6 +46,7 @@ bool Write::readParameters()
   nodeHandle_.getParam("add_stamp_sec_to_path", addStampSecToPath_);
   nodeHandle_.getParam("add_stamp_nsec_to_path", addStampNSecToPath_);
   nodeHandle_.getParam("save_only_one_pointcloud", saveOnlyOnePointcloud_);
+  nodeHandle_.getParam("save_normals", saveNormals_);
 
   if (!allParametersRead)
   {
@@ -61,7 +60,8 @@ bool Write::readParameters()
                    " _add_frame_id_to_path:=true/false"
                    " _add_stamp_sec_to_path:=true/false"
                    " _add_stamp_nsec_to_path:=true/false"
-                   " _save_only_one_pointcloud:=true/false)");
+                   " _save_only_one_pointcloud:=true/false"
+                   " _save_normals:=true/false)");
     return false;
   }
 
@@ -93,13 +93,26 @@ void Write::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud)
   filePath << ".";
   filePath << fileEnding_;
 
+  std::string filePathStr = filePath.str();
+
   if (fileEnding_ == "ply") {
     // Write .ply file.
-    PointCloud<PointXYZRGBNormal> pclCloud;
-    fromROSMsg(*cloud, pclCloud);
+    bool saved = false;
+    if (saveNormals_)
+    {
+      PointCloud<PointXYZRGBNormal> pclCloudWithNormals;
+      fromROSMsg(*cloud, pclCloudWithNormals);
+      saved = savePointCloud(filePathStr, pclCloudWithNormals);
+    }
+    else
+    {
+      PointCloud<PointXYZRGB> pclCloud;
+      fromROSMsg(*cloud, pclCloud);
+      saved = savePointCloud(filePathStr, pclCloud);
+    }
 
-    PLYWriter writer;
-    if (writer.write(filePath.str(), pclCloud) != 0) {
+    if (!saved)
+    {
       ROS_ERROR("Something went wrong when trying to write the point cloud file.");
       return;
     }
@@ -109,10 +122,17 @@ void Write::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud)
     return;
   }
 
-  ROS_INFO_STREAM("Saved point cloud to " << filePath.str() << ".");
+  ROS_INFO_STREAM("Saved point cloud (" << (saveNormals_ ? "PointXYZRGBNormal" : "PointXYZRGB") << ") to " << filePathStr << ".");
 
   if (saveOnlyOnePointcloud_)
     ros::shutdown();
+}
+
+template<typename PointT>
+bool Write::savePointCloud(const std::string& filePath, const PointCloud<PointT>& pclCloud)
+{
+  PLYWriter writer;
+  return (writer.write(filePath, pclCloud, true) == 0);
 }
 
 } /* namespace */
