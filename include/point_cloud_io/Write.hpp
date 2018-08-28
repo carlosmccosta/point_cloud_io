@@ -82,7 +82,7 @@ class Write
 
   //! Settings for generating file name.
   bool addCounterToPath_ = true;
-  bool addFrameIdToPath_ = false;
+  bool addFrameIdToPath_ = true;
   bool addStampSecToPath_ = false;
   bool addStampNSecToPath_ = false;
 
