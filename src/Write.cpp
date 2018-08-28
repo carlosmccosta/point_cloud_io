@@ -47,6 +47,7 @@ bool Write::readParameters()
   nodeHandle_.getParam("add_frame_id_to_path", addFrameIdToPath_);
   nodeHandle_.getParam("add_stamp_sec_to_path", addStampSecToPath_);
   nodeHandle_.getParam("add_stamp_nsec_to_path", addStampNSecToPath_);
+  nodeHandle_.getParam("save_only_one_pointcloud", saveOnlyOnePointcloud_);
 
   if (!allParametersRead)
   {
@@ -59,7 +60,8 @@ bool Write::readParameters()
                    " _add_counter_to_path:=true/false"
                    " _add_frame_id_to_path:=true/false"
                    " _add_stamp_sec_to_path:=true/false"
-                   " _add_stamp_nsec_to_path:=true/false)");
+                   " _add_stamp_nsec_to_path:=true/false"
+                   " _save_only_one_pointcloud:=true/false)");
     return false;
   }
 
@@ -69,7 +71,7 @@ bool Write::readParameters()
 void Write::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud)
 {
   ROS_INFO_STREAM("Received point cloud with " << cloud->height*cloud->width << " points.");
-std::cout << folderPath_ << std::endl;
+  std::cout << folderPath_ << std::endl;
   stringstream filePath;
   filePath << folderPath_ << "/";
   if (!filePrefix_.empty()) {
@@ -108,6 +110,9 @@ std::cout << folderPath_ << std::endl;
   }
 
   ROS_INFO_STREAM("Saved point cloud to " << filePath.str() << ".");
+
+  if (saveOnlyOnePointcloud_)
+    ros::shutdown();
 }
 
 } /* namespace */

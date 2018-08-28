@@ -67,6 +67,9 @@ class Write
   bool addFrameIdToPath_ = false;
   bool addStampSecToPath_ = false;
   bool addStampNSecToPath_ = false;
+
+  //! Setting for saving a single point cloud and exiting
+  bool saveOnlyOnePointcloud_ = true;
 };
 
 } /* namespace */
