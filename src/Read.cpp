@@ -60,6 +60,7 @@ bool Read::readParameters()
   }
 
   nodeHandle_.param("shutdown_delay_if_not_continous_publishing", shutdownDelayIfNotContinousPublishing_, -1.0);
+  nodeHandle_.param("start_publishing_delay", startPublishingDelay_, -1.0);
 
   if (!nodeHandle_.getParam("pointcloud_scale_factor", pointCloudScaleFactor_) || pointCloudScaleFactor_ <= 0.0)
     pointCloudScaleFactor_ = 1.0;
@@ -72,6 +73,7 @@ bool Read::readParameters()
         " _topic:=/my_topic"
         " _frame:=sensor_frame"
         " (optional: _rate:=publishing_rate"
+                   " _start_publishing_delay:=delay"
                    " _shutdown_delay_if_not_continous_publishing:=delay"
                    " _pointcloud_scale_factor:=scale)");
     return false;
@@ -83,6 +85,9 @@ bool Read::readParameters()
 void Read::initialize()
 {
   if (!readFile(filePath_, pointCloudFrameId_)) ros::requestShutdown();
+
+  if (startPublishingDelay_ > 0.0)
+    ros::Duration(startPublishingDelay_).sleep();
 
   if (isContinousPublishing_)
   {
