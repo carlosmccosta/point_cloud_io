@@ -48,6 +48,7 @@ bool Write::readParameters()
   nodeHandle_.getParam("add_stamp_nsec_to_path", addStampNSecToPath_);
   nodeHandle_.getParam("save_only_one_pointcloud", saveOnlyOnePointcloud_);
   nodeHandle_.getParam("save_normals", saveNormals_);
+  nodeHandle_.getParam("save_in_binary_format", saveInBinaryFormat_);
   nodeHandle_.getParam("tf_target_frame_id", tfTargetFrameId_);
   nodeHandle_.getParam("tf_override_point_cloud_frame_id", tfOverridePointCloudFrameId_);
   nodeHandle_.getParam("tf_lookup_timeout", tfLookupTimeout_);
@@ -69,6 +70,7 @@ bool Write::readParameters()
                    " _add_stamp_nsec_to_path:=true/false"
                    " _save_only_one_pointcloud:=true/false"
                    " _save_normals:=true/false"
+                   " _save_in_binary_format:=true/false"
                    " _tf_target_frame_id:=frame_id)"
                    " _tf_override_point_cloud_frame_id:=frame_id"
                    " _tf_lookup_timeout:=timeout");
@@ -186,7 +188,7 @@ template<typename PointT>
 bool Write::savePointCloud(const std::string& filePath, const PointCloud<PointT>& pclCloud)
 {
   PLYWriter writer;
-  return (writer.write(filePath, pclCloud, true) == 0);
+  return (writer.write(filePath, pclCloud, saveInBinaryFormat_) == 0);
 }
 
 } /* namespace */

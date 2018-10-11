@@ -92,6 +92,9 @@ class Write
   //! Setting for specifying if saving normals is required
   bool saveNormals_ = true;
 
+  //! Setting for specifying if saving in binary format
+  bool saveInBinaryFormat_ = true;
+
   //! Settings for transforming the point cloud
   std::string tfTargetFrameId_;
   std::string tfOverridePointCloudFrameId_;
