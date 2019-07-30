@@ -149,11 +149,8 @@ void Read::timerCallback(const ros::TimerEvent& timerEvent)
 bool Read::publish()
 {
   pointCloudMessage_->header.stamp = Time::now();
-  if (pointCloudPublisher_.getNumSubscribers() > 0u)
-  {
-    pointCloudPublisher_.publish(pointCloudMessage_);
-    ROS_INFO_STREAM("Point cloud published to topic \"" << pointCloudTopic_ << "\".");
-  }
+  pointCloudPublisher_.publish(pointCloudMessage_);
+  ROS_INFO_STREAM("Point cloud published to topic \"" << pointCloudTopic_ << "\".");
   return true;
 }
 
