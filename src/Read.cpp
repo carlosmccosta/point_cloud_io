@@ -60,7 +60,7 @@ bool Read::readParameters()
   }
 
   nodeHandle_.param("shutdown_delay_if_not_continous_publishing", shutdownDelayIfNotContinousPublishing_, -1.0);
-  nodeHandle_.param("start_publishing_delay", startPublishingDelay_, -1.0);
+  nodeHandle_.param("start_publishing_delay", startPublishingDelay_, 1.0);
 
   if (!nodeHandle_.getParam("pointcloud_scale_factor", pointCloudScaleFactor_) || pointCloudScaleFactor_ <= 0.0)
     pointCloudScaleFactor_ = 1.0;
