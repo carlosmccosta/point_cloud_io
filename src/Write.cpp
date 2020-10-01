@@ -94,7 +94,10 @@ void Write::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud)
     counter_++;
   }
   if (addFrameIdToPath_) {
-    filePath << "_" << cloud->header.frame_id;
+    if (tfTargetFrameId_.empty())
+      filePath << "_" << cloud->header.frame_id;
+    else
+      filePath << "_" << tfTargetFrameId_;
   }
   if (addStampSecToPath_) {
     filePath << "_" << cloud->header.stamp.sec;
