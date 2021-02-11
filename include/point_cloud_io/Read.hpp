@@ -3,7 +3,7 @@
  *
  *  Created on: Aug 7, 2013
  *      Author: Péter Fankhauser
- *	 Institute: ETH Zurich, Autonomous Systems Lab
+ *      Institute: ETH Zurich, Autonomous Systems Lab
  */
 
 #pragma once
@@ -11,6 +11,7 @@
 // ROS
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <point_cloud_io/Write.hpp>
 
 namespace point_cloud_io {
 
@@ -80,6 +81,12 @@ class Read
 
   //! Point cloud frame id.
   std::string pointCloudFrameId_;
+
+  //! Setting for specifying if saving only valid points (NaNs will be removed)
+  bool loadOnlyValidPoints_ = true;
+
+  //! Setting for specifying if saving only points that are not on sensor origin -> some sensors use this convention instead of NaN
+  bool removePointsInSensorOrigin_ = true;
 
   //! Point cloud scale_factor.
   double pointCloudScaleFactor_ = 1.0;

@@ -49,24 +49,46 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+## Libraries
+add_library(
+  read_lib
+  src/Read.cpp
+)
+
+add_library(
+  write_lib
+  src/Write.cpp
+)
+
 ## Declare cpp executables
 add_executable(
   read
   src/read_node.cpp
-  src/Read.cpp
 )
 add_executable(
   write
   src/write_node.cpp
-  src/Write.cpp
 )
 
 ## Specify libraries to link executable targets against
 target_link_libraries(
+  read_lib
+  write_lib
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(
+  write_lib
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(
   read
+  read_lib
+  write_lib
   ${catkin_LIBRARIES}
 )
 target_link_libraries(
   write
+  write_lib
   ${catkin_LIBRARIES}
 )

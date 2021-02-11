@@ -50,6 +50,7 @@ bool Write::readParameters()
   nodeHandle_.getParam("save_normals", saveNormals_);
   nodeHandle_.getParam("save_in_binary_format", saveInBinaryFormat_);
   nodeHandle_.getParam("save_only_valid_points", saveOnlyValidPoints_);
+  nodeHandle_.getParam("remove_points_in_sensor_origin", removePointsInSensorOrigin_);
   nodeHandle_.getParam("tf_target_frame_id", tfTargetFrameId_);
   nodeHandle_.getParam("tf_override_point_cloud_frame_id", tfOverridePointCloudFrameId_);
   nodeHandle_.getParam("tf_lookup_timeout", tfLookupTimeout_);
@@ -73,6 +74,7 @@ bool Write::readParameters()
                    " _save_normals:=true/false"
                    " _save_in_binary_format:=true/false"
                    " _save_only_valid_points:=true/false"
+                   " _remove_points_in_sensor_origin:=true/false"
                    " _tf_target_frame_id:=frame_id)"
                    " _tf_override_point_cloud_frame_id:=frame_id"
                    " _tf_lookup_timeout:=timeout");
@@ -190,15 +192,49 @@ void Write::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud)
 }
 
 template<typename PointT>
+void Write::removeNaNs(pcl::PointCloud<PointT>& pclCloud) {
+  size_t numberOfOriginalPoints = pclCloud.size();
+  std::vector<int> indexes;
+  pcl::removeNaNFromPointCloud(pclCloud, pclCloud, indexes);
+  pclCloud.is_dense = true;
+  pclCloud.height = 1;
+  pclCloud.width = pclCloud.size();
+  ROS_INFO_STREAM("Removed " << (numberOfOriginalPoints - pclCloud.size()) << " NaNs");
+}
+
+template<typename PointT>
+void Write::removePointsInSensorOrigin(pcl::PointCloud<PointT>& pclCloud) {
+  size_t numberOfOriginalPoints = pclCloud.size();
+  size_t numberOfValidPoints = 0;
+  size_t numberOfInvalidPoints = 0;
+  for (size_t i = 0; i < pclCloud.size(); ++i) {
+    if (pclCloud[i].x != pclCloud.sensor_origin_.x() || pclCloud[i].y != pclCloud.sensor_origin_.y() || pclCloud[i].z != pclCloud.sensor_origin_.z()) {
+      if (numberOfInvalidPoints > 0) {
+        pclCloud[numberOfValidPoints] = pclCloud[i];
+      }
+      ++numberOfValidPoints;
+    } else {
+      ++numberOfInvalidPoints;
+    }
+  }
+  if (numberOfValidPoints < numberOfOriginalPoints) {
+    pclCloud.resize(numberOfValidPoints);
+    pclCloud.height = 1;
+    pclCloud.width = static_cast<std::uint32_t>(numberOfValidPoints);
+  }
+  ROS_INFO_STREAM("Removed " << (numberOfOriginalPoints - pclCloud.size()) << " points in sensor origin");
+}
+
+template<typename PointT>
 bool Write::savePointCloud(const std::string& filePath, PointCloud<PointT>& pclCloud)
 {
   PLYWriter writer;
   if (saveOnlyValidPoints_) {
-    std::vector<int> indexes;
-    pcl::removeNaNFromPointCloud(pclCloud, pclCloud, indexes);
-    pclCloud.is_dense = true;
-    pclCloud.height = 1;
-    pclCloud.width = pclCloud.size();
+    removeNaNs(pclCloud);
+  }
+
+  if (removePointsInSensorOrigin_) {
+    removePointsInSensorOrigin(pclCloud);
   }
 
   return (writer.write(filePath, pclCloud, saveInBinaryFormat_) == 0);

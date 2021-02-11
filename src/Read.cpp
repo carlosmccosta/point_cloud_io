@@ -47,6 +47,9 @@ bool Read::readParameters()
   if (!nodeHandle_.getParam("topic", pointCloudTopic_)) allParametersRead = false;
   if (!nodeHandle_.getParam("frame", pointCloudFrameId_)) allParametersRead = false;
 
+  nodeHandle_.param("load_only_valid_points", loadOnlyValidPoints_, true);
+  nodeHandle_.param("remove_points_in_sensor_origin", removePointsInSensorOrigin_, removePointsInSensorOrigin_);
+
   double updateRate;
   nodeHandle_.param("rate", updateRate, 0.0);
   if (updateRate == 0.0)
@@ -72,7 +75,9 @@ bool Read::readParameters()
         " _file_path:=/home/user/my_point_cloud.ply"
         " _topic:=/my_topic"
         " _frame:=sensor_frame"
-        " (optional: _rate:=publishing_rate"
+        " (optional: _load_only_valid_points:=true/false"
+                   " _remove_points_in_sensor_origin:=true/false"
+                   " _rate:=publishing_rate"
                    " _start_publishing_delay:=delay"
                    " _shutdown_delay_if_not_continous_publishing:=delay"
                    " _pointcloud_scale_factor:=scale)");
@@ -127,13 +132,19 @@ bool Read::readFile(const std::string& filePath, const std::string& pointCloudFr
 
   if (pointCloudScaleFactor_ != 1.0)
   {
-    PointCloud<PointXYZRGBNormal> pointCloud_scaled;
     Eigen::Matrix4f scale_matrix = Eigen::Matrix4f(Eigen::Matrix4f::Identity()) * pointCloudScaleFactor_;
-    pcl::transformPointCloud<PointXYZRGBNormal>(pointCloud, pointCloud_scaled, scale_matrix);
-    toROSMsg(pointCloud_scaled, *pointCloudMessage_);
+    pcl::transformPointCloudWithNormals<PointXYZRGBNormal>(pointCloud, pointCloud, scale_matrix);
   }
-  else
-    toROSMsg(pointCloud, *pointCloudMessage_);
+
+  if (loadOnlyValidPoints_) {
+    Write::removeNaNs(pointCloud);
+  }
+
+  if (removePointsInSensorOrigin_) {
+    Write::removePointsInSensorOrigin(pointCloud);
+  }
+  
+  toROSMsg(pointCloud, *pointCloudMessage_);
 
   pointCloudMessage_->header.frame_id = pointCloudFrameId;
 

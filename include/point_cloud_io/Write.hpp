@@ -3,7 +3,7 @@
  *
  *  Created on: Nov 13, 2015
  *      Author: Remo Diethelm
- *	 Institute: ETH Zurich, Autonomous Systems Lab
+ *   Institute: ETH Zurich, Autonomous Systems Lab
  */
 
 #pragma once
@@ -38,6 +38,20 @@ class Write
    * Destructor.
    */
   virtual ~Write();
+
+  /*!
+   * Method for removing NaNs
+   * @param pclCloud Point cloud
+   */
+  template<typename PointT>
+  static void removeNaNs(pcl::PointCloud<PointT>& pclCloud);
+
+  /*!
+   * Method for removing points in the sensor origin
+   * @param pclCloud Point cloud
+   */
+  template<typename PointT>
+  static void removePointsInSensorOrigin(pcl::PointCloud<PointT>& pclCloud);
 
  private:
   /*!
@@ -98,6 +112,9 @@ class Write
 
   //! Setting for specifying if saving only valid points (NaNs will be removed)
   bool saveOnlyValidPoints_ = true;
+
+  //! Setting for specifying if saving only points that are not on sensor origin -> some sensors use this convention instead of NaN
+  bool removePointsInSensorOrigin_ = true;
 
   //! Settings for transforming the point cloud
   std::string tfTargetFrameId_;
