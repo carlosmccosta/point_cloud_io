@@ -49,6 +49,7 @@ bool Write::readParameters()
   nodeHandle_.getParam("save_only_one_pointcloud", saveOnlyOnePointcloud_);
   nodeHandle_.getParam("save_normals", saveNormals_);
   nodeHandle_.getParam("save_in_binary_format", saveInBinaryFormat_);
+  nodeHandle_.getParam("save_only_valid_points", saveOnlyValidPoints_);
   nodeHandle_.getParam("tf_target_frame_id", tfTargetFrameId_);
   nodeHandle_.getParam("tf_override_point_cloud_frame_id", tfOverridePointCloudFrameId_);
   nodeHandle_.getParam("tf_lookup_timeout", tfLookupTimeout_);
@@ -71,6 +72,7 @@ bool Write::readParameters()
                    " _save_only_one_pointcloud:=true/false"
                    " _save_normals:=true/false"
                    " _save_in_binary_format:=true/false"
+                   " _save_only_valid_points:=true/false"
                    " _tf_target_frame_id:=frame_id)"
                    " _tf_override_point_cloud_frame_id:=frame_id"
                    " _tf_lookup_timeout:=timeout");
@@ -188,9 +190,17 @@ void Write::pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& cloud)
 }
 
 template<typename PointT>
-bool Write::savePointCloud(const std::string& filePath, const PointCloud<PointT>& pclCloud)
+bool Write::savePointCloud(const std::string& filePath, PointCloud<PointT>& pclCloud)
 {
   PLYWriter writer;
+  if (saveOnlyValidPoints_) {
+    std::vector<int> indexes;
+    pcl::removeNaNFromPointCloud(pclCloud, pclCloud, indexes);
+    pclCloud.is_dense = true;
+    pclCloud.height = 1;
+    pclCloud.width = pclCloud.size();
+  }
+
   return (writer.write(filePath, pclCloud, saveInBinaryFormat_) == 0);
 }
 

@@ -21,6 +21,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/common/transforms.h>
+#include <pcl/filters/filter.h>
 
 namespace point_cloud_io {
 
@@ -57,7 +58,7 @@ class Write
    * @param pclCloud Point cloud to save
    */
   template<typename PointT>
-  bool savePointCloud(const std::string& filePath, const pcl::PointCloud<PointT>& pclCloud);
+  bool savePointCloud(const std::string& filePath, pcl::PointCloud<PointT>& pclCloud);
 
   //! ROS node handle.
   ros::NodeHandle& nodeHandle_;
@@ -94,6 +95,9 @@ class Write
 
   //! Setting for specifying if saving in binary format
   bool saveInBinaryFormat_ = true;
+
+  //! Setting for specifying if saving only valid points (NaNs will be removed)
+  bool saveOnlyValidPoints_ = true;
 
   //! Settings for transforming the point cloud
   std::string tfTargetFrameId_;
